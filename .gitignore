@@ -1,0 +1,7 @@
+# Ignore model files
+# Ignore model files
+face_detection_yunet_2023mar.onnx
+mobilefacenet.tflite
+# Ignore only images in absen and db_image
+absen/*.jpg
+db_image/**/*.jpg

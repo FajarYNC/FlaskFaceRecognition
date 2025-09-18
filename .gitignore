@@ -5,3 +5,6 @@ mobilefacenet.tflite
 # Ignore only images in absen and db_image
 absen/*.jpg
 db_image/**/*.jpg
+# Ignore images in templates
+templates/absen/*.jpg
+templates/db_image/**/*.jpg

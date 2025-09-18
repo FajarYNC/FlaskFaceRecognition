@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Registrasi Wajah</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .video-container { max-width: 640px; border: 1px solid #dee2e6; box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15); background-color: #000; }
+        .thumbnail { width: 100px; height: 80px; border: 1px solid #ccc; background-color: #e9ecef; object-fit: cover; }
+        .spinner-border { display: none; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Absensi Wajah Web</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Live Absensi</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/register">Registrasi</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h2>Formulir Registrasi Wajah</h2>
+        <p>Ambil 6 foto dari berbagai sudut (mendongak, sedikit kiri/kanan).</p>
+        
+        <div class="row">
+            <div class="col-lg-8">
+                <img src="{{ url_for('video_feed') }}" class="img-fluid video-container mb-3">
+                <form id="register-form">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Nama Lengkap</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="address" class="form-label">Alamat</label>
+                            <input type="text" class="form-control" id="address" name="address" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="department" class="form-label">Departemen</label>
+                        <select class="form-select" id="department" name="department">
+                            <option>HRD</option>
+                            <option>Teknik</option>
+                            <option>Keuangan</option>
+                            <option>Lainnya</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="col-lg-4">
+                <h4>Ambil Foto</h4>
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <button class="btn btn-secondary w-100" onclick="capturePose(0)">Ambil Depan</button>
+                        <img id="thumb-0" class="thumbnail mt-1" src="https://placehold.co/100x80/EFEFEF/AAAAAA?text=Pose+1">
+                    </div>
+                    <div class="col-6 mb-3">
+                        <button class="btn btn-secondary w-100" onclick="capturePose(1)">Ambil Senyum</button>
+                        <img id="thumb-1" class="thumbnail mt-1" src="https://placehold.co/100x80/EFEFEF/AAAAAA?text=Pose+2">
+                    </div>
+                    <div class="col-6 mb-3">
+                        <button class="btn btn-secondary w-100" onclick="capturePose(2)">Ambil Kiri</button>
+                        <img id="thumb-2" class="thumbnail mt-1" src="https://placehold.co/100x80/EFEFEF/AAAAAA?text=Pose+3">
+                    </div>
+                    <div class="col-6 mb-3">
+                        <button class="btn btn-secondary w-100" onclick="capturePose(3)">Ambil Kanan</button>
+                        <img id="thumb-3" class="thumbnail mt-1" src="https://placehold.co/100x80/EFEFEF/AAAAAA?text=Pose+4">
+                    </div>
+                    <div class="col-6 mb-3">
+                        <button class="btn btn-secondary w-100" onclick="capturePose(4)">Ambil Atas</button>
+                        <img id="thumb-4" class="thumbnail mt-1" src="https://placehold.co/100x80/EFEFEF/AAAAAA?text=Pose+5">
+                    </div>
+                    <div class="col-6 mb-3">
+                        <button class="btn btn-secondary w-100" onclick="capturePose(5)">Ambil Bawah</button>
+                        <img id="thumb-5" class="thumbnail mt-1" src="https://placehold.co/100x80/EFEFEF/AAAAAA?text=Pose+6">
+                    </div>
+                </div>
+                <div class="d-grid">
+                    <button id="finish-btn" class="btn btn-success btn-lg" onclick="saveRegistration()" disabled>
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Selesai Registrasi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let capturedCount = 0;
+
+        function capturePose(poseIndex) {
+            fetch(`/capture_pose/${poseIndex}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById(`thumb-${poseIndex}`).src = data.thumbnail;
+                    capturedCount++;
+                    if (capturedCount >= 6) {
+                        document.getElementById('finish-btn').disabled = false;
+                    }
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
+
+        function saveRegistration() {
+            const form = document.getElementById('register-form');
+            if (!form.checkValidity()) {
+                alert('Harap isi semua data (Nama dan Alamat).');
+                return;
+            }
+
+            const finishBtn = document.getElementById('finish-btn');
+            const spinner = finishBtn.querySelector('.spinner-border');
+            finishBtn.disabled = true;
+            spinner.style.display = 'inline-block';
+
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            fetch('/save_registration', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                alert(result.message);
+                if (result.status === 'success') {
+                    window.location.href = '/'; // Kembali ke halaman utama
+                }
+            })
+            .finally(() => {
+                finishBtn.disabled = false;
+                spinner.style.display = 'none';
+            });
+        }
+    </script>
+</body>
+</html>
